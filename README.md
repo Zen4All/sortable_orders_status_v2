@@ -1,0 +1,1 @@
+This repository hosts the **Sortable Orders Status** plugin, usable for Zen Cart 1.5.6 and later.  Additional information might be found in the plugin's Zen Cart [support thread](https://www.zen-cart.com/showthread.php?225374-Sortable-Orders-Status-(for-Zen-Cart-1-5-6-)).

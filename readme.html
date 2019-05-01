@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="icon" href="../vinos_favicon.ico" type="image/x-icon" />
+<link href="http://fonts.googleapis.com/css?family=Roboto" rel="stylesheet" type="text/css">
+<title>Sortable Orders Status</title>
+<style type="text/css">
+<!--
+a, a:active, a:visited { color: #006666; text-decoration: none; }
+a:hover { color:#00CC99; text-decoration: underline; }
+BODY, P, H1, H2, H3, H4, H5, H6, LI, TD, DD, DT {
+  font-family: Roboto, Verdana, AvantGarde, Tahoma, Arial, sans-serif;
+  font-size: 12pt;
+  color: black;
+  padding: 0px;
+  margin: 20px;
+}
+H1, H2, H3, H4 { font-weight: bold; }
+h1 { font-size: 20px; }
+h2 { font-size: 16px; }
+pre { border: 1px solid #444; padding: 0.5em; background-color: #ebebeb; }
+ol li { margin-left: 0; }
+.corefile, .edit { color: red; }
+.removed { text-decoration: line-through; }
+.added { color: blue; }
+.changed { color: green; }
+.smaller { font-size: smaller; }
+.minspacing li { margin: 0; }
+ol li, ul li { margin-top: 5px; margin-bottom: 5px; }
+ul li ul { padding-left: 0; }
+-->
+</style>
+</head>
+
+<body>
+<h1>Sortable Orders Status</h1>
+<h3>Version 2.0.0 by lat9, for Zen Cart 1.5.6 and later</h3>
+<p>Support thread on the Zen Cart Forums: <a href="https://www.zen-cart.com/showthread.php?225374-Sortable-Orders-Status-(for-Zen-Cart-1-5-6-)" target="_blank">https://www.zen-cart.com/showthread.php?225374-Sortable-Orders-Status-(for-Zen-Cart-1-5-6-)</a></p>
+<p>This version, supporting <em>Zen Cart 1.5.6 and later</em>, is based on the like-named <a href="https://www.zen-cart.com/downloads.php?do=file&id=1978" target="_blank">plugin</a> for prior Zen Cart versions.  Unlike that previous version of the plugin, this version requires some hand-edits of admin-level <span class="corefile">core files</span>.
+<hr />
+<h2>Purpose</h2>
+<p>You've defined a order-processing procedure for your store and assigned various <em>Orders Status</em> values to allow you and your staff to track where each order is in that procedure.  Whenever you add a new status value, though, it's added to the end of the list of statuses so it doesn't show in your &quot;defined&quot; work-flow order &mdash; which tends to confuse both you and your staff!</p>
+<p>This plugin modifies the <em>Localization-&gt;Orders Status</em> processing, adding a <b>Sort Order</b> value to each status entry.  The status values are now sorted within that tool, the function used to create an orders-status dropdown (used heavily in the payment modules' configuration) and in the status dropdown within the <em>Customers->Orders</em> tool &mdash;  in ascending sort-order.  Now you can control where in the list each status value lies, making that list more customizable to your site.</p>
+
+<hr />
+<h2>Installation</h2>
+<p>There are <span class="corefile">core-file changes</span> required for this plugin; you should <strong>always</strong> backup your cart's database and files prior to making any changes.</p>
+<p><b>Note:</b> Installation also requires some &quot;hand edits&quot; of the following <span class="corefile">core files</span>:</p>
+<ol>
+    <li><code class="corefile">/YOUR_ADMIN/orders.php</code>.  Find the start of the <code>&lt;!doctype html&gt;</code>, located around line 310 on an unmodified Zen Cart 1.5.6 version of the file, and update as follows:<pre>
+<span class="edit">//-bof-sortable_orders_status-lat9  *** 1 of 1 ***
+$zco_notifier->notify('NOTIFY_ADMIN_ORDERS_START_HTML');
+//-eof-sortable_orders_status_lat9  *** 1 of 1 ***</span>
+?>
+&lt;!doctype html&gt;
+    </pre></li>
+    <li><code class="corefile">/YOUR_ADMIN/includes/functions/general.php</code>.  Changes are required for two of the functions provided by that module:<ol type="a">
+        <li><code>zen_get_orders_status</code>.  Update the <code>SQL</code> query used to remove the unwanted single-quotes for the <code>language_id</code> field and change the sort-order to use the now-defined <code>sort_order</code>:<pre>
+<span class="edit">//-bof-sortable_orders_status-lat9  *** 1 of 1 *** (changes order by clause from orders_status_id, 'loses' single-quotes around language_id)</span>
+    $orders_status = $db->Execute("select orders_status_id, orders_status_name
+                                   from " . TABLE_ORDERS_STATUS . "
+                                   where language_id = <span class="edit">" . (int)$_SESSION['languages_id'] . "
+                                   order by sort_order ASC, orders_status_id ASC</span>");
+<span class="edit">//-eof-sortable_orders_status-lat9  *** 1 of 1 ***</span>
+        </pre></li>
+        <li><code>zen_get_orders_status</code>.  Update the <code>SQL</code> query used to remove the unwanted single-quotes for the <code>language_id</code> field and change the sort-order to use the now-defined <code>sort_order</code>:<pre>
+<span class="edit">//-bof-sortable_orders_status-lat9  *** 2 of 2 *** (changes order by clause from orders_status_id, 'loses' single-quotes around language_id)</span>
+    $statuses = $db->Execute("select orders_status_id, orders_status_name
+                              from " . TABLE_ORDERS_STATUS . "
+                              where language_id = <span class="edit">" . (int)$_SESSION['languages_id'] . "
+                              order by sort_order ASC, orders_status_id ASC</span>");
+//-eof-sortable_orders_status-lat9  *** 2 of 2 ***</span>
+        </pre></li>
+    </ol></li>
+</ol>
+<p>Rename the <b>YOUR_ADMIN</b> folder to match your Zen Cart's secret admin folder and copy the plugin's included files to your store's file-system:</p>
+<ol>
+    <li><span class="corefile">/YOUR_ADMIN/orders_status.php</span> <span class="smaller">(This is the Zen Cart 1.5.6b version of the file, with 7 marked change-sections)</span></li>
+    <li>/YOUR_ADMIN/includes/auto_loaders/config.sortable_orders_status.php</li>
+    <li>/YOUR_ADMIN/includes/classes/observers/SortableOrdersStatusObserver.php</li>
+    <li>/YOUR_ADMIN/includes/functions/extra_functions/init_orders_status_sort_order.php</li>
+    <li><span class="corefile">/YOUR_ADMIN/includes/languages/english/orders_status.php</span></li>
+</ol>
+
+<hr />
+<h2>Un-install</h2>
+<p>Restore the four (4) core-files overwritten or edited during the plugin's installation..</p>
+
+<h2>Version History:</h2>
+<ul>
+    <li>v2.0.0, 2019-05-01: Initial release.</li>
+</ul>
+
+</body>
+</html>
